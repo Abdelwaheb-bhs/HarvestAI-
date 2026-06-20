@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    
+    <!-- NuGet Package Metadata -->
+    <PackageId>HarvestAI</PackageId>
+    <Version>0.1.1-pre</Version>
+    <Title>HarvestAI - Web Scraping and Data Cleaning for LLMs</Title>
+    <Description>A pre-release NuGet package for web scraping, crawling, and data cleaning. Features: Advanced web scraping with Playwright, Recursive website crawling, HTML to Markdown conversion, Smart content chunking, Concurrent page processing. Optimized for preparing web content for Large Language Model processing. 100% based on production-tested code.</Description>
+    <Authors>Abdelwaheb ben haj said</Authors>
+    <PackageProjectUrl>https://github.com/Abdelwaheb-bhs/HarvestAI</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Abdelwaheb-bhs/HarvestAI</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>web-scraping,llm,data-cleaning,html-to-markdown,content-extraction,ai</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    
+    <!-- Pre-release indicator -->
+    <PrereleaseSuffix>pre</PrereleaseSuffix>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <InformationalVersion>0.1.1-pre</InformationalVersion>
+  </PropertyGroup>
+
+  <!-- Package Description for Release Notes -->
+  <PropertyGroup>
+    <PackageReleaseNotes>Initial pre-release version featuring: Web scraping with Playwright, HTML to Markdown conversion, Smart content chunking for LLM models, Concurrent crawling support. This is a pre-release package. API may change based on feedback.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <!-- Dependencies -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Playwright" Version="1.45.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Tiktoken" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests\**\*.cs" />
+    <EmbeddedResource Remove="tests\**\*" />
+    <None Remove="tests\**\*" />
+
+    <Compile Remove="tools\**\*.cs" />
+    <EmbeddedResource Remove="tools\**\*" />
+    <None Remove="tools\**\*" />
+  </ItemGroup>
+
+</Project>
