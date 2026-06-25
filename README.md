@@ -1,21 +1,30 @@
-# HarvestAI - Web Scraping & Data Cleaning for LLMs
-![alt text](logoHarvest.png)
-A production-grade NuGet package for web scraping, crawling, and data cleaning specifically designed to prepare web content for Large Language Model (LLM) processing.
+# HarvestAI — Web Scraping & Data Preparation for LLMs
+
+![HarvestAI Logo](logoHarvest.png)
+
+A production-grade .NET package for scraping, crawling, and cleaning web content into LLM-ready chunks. Built on Playwright for full JavaScript rendering, with smart chunking, session management, and login support out of the box.
+
+---
 
 ## Features
 
-- **Advanced Web Scraping**: Leverage Playwright for browser automation and JavaScript rendering
-- **Recursive Website Crawling**: Automatically discover and scrape internal links
-- **HTML to Markdown Conversion**: Intelligent conversion with formatting preservation
-- **Smart Content Chunking**: Automatic text segmentation optimized for LLM token limits
-- **Concurrent Processing**: Process multiple pages simultaneously for maximum performance
-- **Session Management**: Support for login-required websites with headless and non-headless modes
-- **Content Cleaning**: Normalize and sanitize content specifically for AI model consumption
+- **Full JS Rendering** — Playwright-powered scraping handles SPAs and dynamic content
+- **Recursive Crawling** — Automatically discovers and follows internal links
+- **HTML → Markdown** — Intelligent conversion that preserves structure and headings
+- **Smart Chunking** — Token-aware segmentation optimized for LLM context windows
+- **Concurrent Processing** — Configurable concurrency for high-throughput crawls
+- **Login Support** — Non-headless mode lets users authenticate before scraping
+- **Image Downloading** — Optionally download page images via the authenticated session
+- **Content Cleaning** — Normalizes and sanitizes output for AI model consumption
 
-## Prerequisites
+---
+
+## Requirements
 
 - .NET 8.0 or later
 - Windows, Linux, or macOS
+
+---
 
 ## Installation
 
@@ -23,58 +32,55 @@ A production-grade NuGet package for web scraping, crawling, and data cleaning s
 dotnet add package HarvestAI --prerelease
 ```
 
-Or via NuGet Package Manager:
+Or via the NuGet Package Manager console:
 
-```
+```powershell
 Install-Package HarvestAI -Prerelease
 ```
 
 ### Playwright Browser Setup
 
-Install the companion setup tool and run it once to download the Chromium browser binaries required by HarvestAI:
+After installing the package, Chromium binaries must be present on the machine. Choose either option below.
+
+**Option 1 — HarvestAI companion tool (recommended):**
 
 ```bash
 dotnet tool install --global HarvestAI.Setup
 harvestai-setup
 ```
 
-On Linux, use this form if you want the Playwright system dependencies installed too:
+On Linux, pass `--with-deps` to also install Playwright system dependencies:
 
 ```bash
 harvestai-setup --with-deps
 ```
 
-### Install In Another Project
-
-If you are testing against a local build instead of NuGet, point your project at the local package source:
+**Option 2 — Install Playwright directly:**
 
 ```bash
-dotnet add package HarvestAI --source C:\Users\User\Desktop\Abdelwaheb\HarvestAI\bin\Release
+dotnet tool install --global Microsoft.Playwright.CLI
+playwright install chromium
 ```
 
-## Demo Usage
+On Linux, to also install system dependencies:
 
-The snippet below follows the same overall flow as the external smoke test: create the service, open a browser session, scrape content, and dispose the session. It is intentionally shorter and more general than the test project code.
+```bash
+playwright install --with-deps chromium
+```
 
-The `metadata` parameter is optional on the scraping methods. Use `metadata: false` when you only want the extracted content, and `metadata: true` when you want each chunk to include metadata such as source details.
+---
 
-### Console Demo
+## Quick Start
 
 ```csharp
 using HarvestAI.WebScraping;
-using System;
-using System.IO;
 
-var outputDirectory = Path.Combine(Environment.CurrentDirectory, "harvest-output");
-Directory.CreateDirectory(outputDirectory);
-
-var service = new WebScrapingService(maxConcurrency: 3, outputDirectory: outputDirectory);
+var service = new WebScrapingService(maxConcurrency: 2, outputDirectory: "harvest-output");
 var browserSession = await service.LoadWebsite(needLogin: false);
 
 try
 {
-    var url = "https://example.com";
-    await browserSession.Page.GotoAsync(url);
+    await browserSession.Page.GotoAsync("https://example.com");
 
     var userSession = new UserSession
     {
@@ -85,8 +91,7 @@ try
 
     var (htmlContent, chunks) = await service.SinglePageScrapingAsync(userSession, metadata: true);
 
-    Console.WriteLine($"Scraped {chunks.Count} chunks from {url}");
-    Console.WriteLine($"Output is ready in: {outputDirectory}");
+    Console.WriteLine($"Scraped {chunks.Count} chunks from {htmlContent.Length} bytes of HTML.");
 }
 finally
 {
@@ -94,158 +99,242 @@ finally
 }
 ```
 
-### Scrape A Single Page
+---
+
+## Usage
+
+### Scrape a Single Page
 
 ```csharp
-var scrapingService = new WebScrapingService(maxConcurrency: 5, outputDirectory: "scraped_content");
-var session = await scrapingService.LoadWebsite(needLogin: false);
+var service = new WebScrapingService(maxConcurrency: 5, outputDirectory: "output");
+var session = await service.LoadWebsite(needLogin: false);
+
+try
+{
+    await session.Page.GotoAsync("https://example.com");
+
+    var userSession = new UserSession
+    {
+        UserId = "user123",
+        NeedLogin = false,
+        BrowserSession = session
+    };
+
+    var (htmlContent, chunks) = await service.SinglePageScrapingAsync(userSession, metadata: true);
+
+    Console.WriteLine($"Chunks: {chunks.Count}");
+}
+finally
+{
+    await service.DisposeSessionAsync(session);
+}
+```
+
+### Scrape a Single Page with Images
+
+Pass `withImages: true` to download page images via the authenticated browser session. Downloaded images are saved to `outputDirectory/images/` and their paths are embedded in the returned markdown.
+
+```csharp
+var (htmlContent, chunks) = await service.SinglePageScrapingAsync(
+    userSession,
+    metadata: true,
+    withImages: true
+);
+```
+
+### Scrape a Login-Required Website
+
+```csharp
+var service = new WebScrapingService(maxConcurrency: 2, outputDirectory: "harvest-output");
+var browserSession = await service.LoadWebsite(needLogin: true);
+var url = "https://www.example.com/";
+
+await browserSession.Page.GotoAsync(url);
+
+bool loggedIn = await service.WaitForLoginAsync(browserSession, timeoutSeconds: 1200);
+
+if (!loggedIn)
+{
+    Console.WriteLine("Login not completed. Aborting.");
+    await service.DisposeSessionAsync(browserSession);
+    return;
+}
+
+// Navigate back to target after login
+await browserSession.Page.GotoAsync(url);
 
 try
 {
     var userSession = new UserSession
     {
-        UserId = "user123",
-        BrowserSession = session,
-        NeedLogin = false
+        UserId = "demo-user",
+        NeedLogin = true,
+        BrowserSession = browserSession
     };
 
-    var (htmlContent, chunks) = await scrapingService.SinglePageScrapingAsync(userSession, metadata: false);
+    var (htmlContent, chunks) = await service.SinglePageScrapingAsync(userSession, metadata: true);
 
-    Console.WriteLine(htmlContent);
-    Console.WriteLine($"Chunk count: {chunks.Count}");
+    Console.WriteLine($"Scraped {chunks.Count} chunks.");
 }
 finally
 {
-    await scrapingService.DisposeSessionAsync(session);
+    await service.DisposeSessionAsync(browserSession);
 }
-```
-
-### Full Smoke-Test Style Export
-
-If you want a markdown-writing example like the external smoke test, use the same service/session flow and write the returned chunks to disk. The important part is the call shape, not the exact markdown layout:
-
-```csharp
-var (htmlContent, chunks) = await service.SinglePageScrapingAsync(userSession, metadata: true);
-```
-
-### Scrape A Specific URL
-
-```csharp
-await scrapingService.SinglePageScrapingAsync("https://example.com", metadata: true);
-```
-
-### Get Internal Links
-
-```csharp
-var internalLinks = await scrapingService.GetInternalLinksList(userSession);
-```
-
-### Scrape by Element Attribute
-
-```csharp
-var (html, chunks) = await scrapingService.ScrapeByValueAsync(
-    userSession, 
-    attributeValue: "article-content"
-);
 ```
 
 ### Scrape Selected Pages
 
 ```csharp
-var urls = new List<string> 
-{ 
+var urls = new List<string>
+{
     "https://example.com/page1",
     "https://example.com/page2",
     "https://example.com/page3"
 };
 
-var results = await scrapingService.ScrapeSelectedPagesAsync(userSession, urls);
+var results = await service.ScrapeSelectedPagesAsync(userSession, urls, metadata: true);
 ```
+
+### Recursive Website Crawl
+
+```csharp
+var results = await service.ScrapeWebsiteAsync(userSession, login: false, metadata: true);
+Console.WriteLine($"Crawled {results.Count} pages.");
+```
+
+### Scrape by Element Attribute
+
+Targets only elements whose attributes contain the given value — useful for scraping specific components like article bodies or sidebars.
+
+```csharp
+var (html, chunks) = await service.ScrapeByValueAsync(
+    userSession,
+    attributeValue: "article-content",
+    metadata: true
+);
+```
+
+### Get Internal Links
+
+```csharp
+var links = await service.GetInternalLinksList(userSession);
+links.ForEach(Console.WriteLine);
+```
+
+### Scrape a URL Without a Session
+
+```csharp
+await service.SinglePageScrapingAsync("https://example.com", metadata: true);
+```
+
+---
 
 ## Output Format
 
-All scraping operations return content structured in `FileContent` objects:
+All scraping methods return content as structured `FileContent` objects containing typed `Chunk` lists.
 
 ```csharp
 public class FileContent
 {
-    public List<Chunk> Sections { get; set; }        // Content chunks
-    public string MimeType { get; set; }              // "text/markdown"
-    public Dictionary<string, string> Metadata { get; set; }  // URL, UserId, etc.
+    public List<Chunk> Sections { get; set; }                  // Content chunks
+    public string MimeType { get; set; }                        // Always "text/markdown"
+    public Dictionary<string, string> Metadata { get; set; }   // URL, UserId, etc.
 }
 
 public class Chunk
 {
-    public string Content { get; set; }               // Actual content
-    public int ChunkNumber { get; set; }              // Sequence number
-    public Dictionary<string, object> Metadata { get; set; }  // Additional metadata
+    public string Content { get; set; }                         // Markdown text
+    public int ChunkNumber { get; set; }                        // Sequence number
+    public Dictionary<string, object> Metadata { get; set; }   // Heading context, section, etc.
 }
 ```
 
-## Login-Required Websites
+When `metadata: true` is passed, each chunk includes heading context fields (`chapter`, `title`, `section`, `subsection`, `subsubsection`, `topic`) derived from the page structure.
 
-For websites requiring authentication:
+### Writing Chunks to Disk
 
 ```csharp
-// Launch browser in non-headless mode for manual login
-var session = await scrapingService.LoadWebsite(needLogin: true);
+var (htmlContent, chunks) = await service.SinglePageScrapingAsync(userSession, metadata: true);
 
-var userSession = new UserSession 
-{ 
-    UserId = "user123",
-    NeedLogin = true,    // Important!
-    BrowserSession = session
-};
+using var writer = new StreamWriter("output.md", false);
+await writer.WriteLineAsync($"HTML length: {htmlContent.Length}");
+await writer.WriteLineAsync($"Chunk count: {chunks.Count}");
 
-// Browser window will open - perform manual login
-// After login is detected, scraping will proceed automatically
-var content = await scrapingService.SinglePageScrapingAsync(userSession);
+foreach (var chunk in chunks)
+{
+    await writer.WriteLineAsync($"## Chunk {chunk.ChunkNumber}");
+    foreach (var item in chunk.Metadata)
+        await writer.WriteLineAsync($"- {item.Key}: {item.Value}");
+    await writer.WriteLineAsync(chunk.Content);
+}
 ```
+
+### Output Directory Structure
+
+When `outputDirectory` is set, intermediate files are organized by user:
+
+```
+outputDirectory/
+├── userId1/
+│   ├── page-slug-1.md
+│   ├── page-slug-2.md
+│   └── ...
+├── userId2/
+│   └── ...
+└── images/
+    ├── image_0.jpg
+    ├── image_1.png
+    └── ...
+```
+
+---
 
 ## Configuration
 
-### Constructor Parameters
+### Constructor
 
 ```csharp
 new WebScrapingService(
-    maxConcurrency: 5,           // Max concurrent page downloads (default: 5)
-    outputDirectory: null,       // Where to save intermediate files (optional)
-    loggerFactory: null,         // Custom logger (optional)
-    httpClient: null            // Custom HTTP client (optional)
+    maxConcurrency: 5,      // Max concurrent page downloads (default: 5)
+    outputDirectory: null,  // Directory for saved files (optional)
+    loggerFactory: null,    // ILoggerFactory for diagnostics (optional)
+    httpClient: null        // Custom HttpClient (optional)
 );
 ```
 
-### Chunk Size Control
+### Chunk Size
 
-Control how content is chunked by modifying the max tokens per chunk:
+The default chunk size is 512 tokens. Override it via the converter directly:
 
 ```csharp
-// In the HTML to Markdown converter (default: 512 tokens per chunk)
 converter.Convert(htmlContent, maxTokensPerChunk: 1024);
 ```
 
-## Performance Tips
+---
 
-1. **Adjust Concurrency**: For large sites, increase `maxConcurrency` (up to 20), but monitor resource usage
+## Session Validation
 
-2. **Use Sessions**: Reuse browser sessions when scraping multiple pages from the same domain
+Always validate a session before long-running operations:
 
-3. **Check Validity**: Validate sessions before long-running operations:
-   
-   ```csharp
-   bool isInvalid = await scrapingService.IsSessionInvalid(session);
-   ```
+```csharp
+if (await service.IsSessionInvalid(session))
+{
+    Console.WriteLine("Session is no longer valid.");
+    return;
+}
+```
+
+---
 
 ## Error Handling
 
 ```csharp
 try
 {
-    var content = await scrapingService.ScrapeWebsiteAsync(userSession, login: false);
+    var results = await service.ScrapeWebsiteAsync(userSession, login: false);
 }
 catch (ArgumentNullException ex)
 {
-    // Null browser session
     Console.WriteLine($"Invalid session: {ex.Message}");
 }
 catch (Exception ex)
@@ -254,76 +343,47 @@ catch (Exception ex)
 }
 ```
 
-## Limitations & Known Issues
+---
 
-- **JavaScript rendering**: Full JavaScript execution is performed (unlike simple HTTP clients)
-- **Rate limiting**: Some sites may block aggressive concurrent requests; adjust `maxConcurrency` accordingly
-- **Large websites**: For sites with 1000+ pages, expect significant memory and time usage
-- **Network timeouts**: Default timeout is 90 seconds per page; adjust via browser configuration if needed
+## Performance Tips
 
-## Output Files
-
-When `outputDirectory` is specified, content is saved to disk in Markdown format:
-
-```
-outputDirectory/
-├── userId1/
-│   ├── page_slug_1.md
-│   ├── page_slug_2.md
-│   └── ...
-├── userId2/
-│   └── ...
-```
-
-## Building the Package
-
-To build a NuGet package locally:
-
-```bash
-dotnet pack -c Release
-```
-
-The `.nupkg` file will be created in `bin/Release/`.
-
-To publish to NuGet.org:
-
-```bash
-dotnet nuget push bin/Release/HarvestAI.0.1.0-pre.nupkg --api-key <your-api-key> --source https://api.nuget.org/v3/index.json
-```
-
-## Dependencies
-
-- **Microsoft.Playwright** (1.45.0+) - Browser automation
-- **HtmlAgilityPack** (1.11.61+) - HTML parsing and manipulation
-- **Microsoft.Extensions.Logging.Abstractions** (8.0.1+) - Logging interface
-- **Tiktoken** (1.0.0+) - Token counting for LLM models
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Contributing
-
-This package contains production-tested code from enterprise scraping projects. Contributions and feedback are welcome!
-
-## Support
-
-For issues, questions, or feature requests, please visit the [GitHub repository](https://github.com/yourusername/HarvestAI).
-
-## Changelog
-
-### Version 0.1.0-pre (Initial Pre-Release)
-
-- Initial release
-- Web scraping with Playwright
-- Recursive crawling support
-- HTML to Markdown conversion
-- Smart chunking for LLM preparation
-- Session management with login support
-- Concurrent page processing
+- Increase `maxConcurrency` (up to ~20) for large sites, but monitor CPU and memory
+- Reuse browser sessions when scraping multiple pages from the same domain
+- Use `ScrapeSelectedPagesAsync` instead of a full crawl when target URLs are known
+- Set `metadata: false` when heading context is not needed — slightly faster chunking
 
 ---
 
-**Note**: This is a pre-release (0.1.0-pre) package. The API may change based on early adopter feedback. Use with caution in production environments.
+## Limitations
+
+- **Rate limiting** — Aggressive concurrency may trigger blocks on some sites; tune `maxConcurrency` accordingly
+- **Large sites** — Sites with 1000+ pages require significant memory and time
+- **Network timeouts** — Default timeout is 90 seconds per page
+- **Image downloads** — Session-bound CDN images (e.g. Instagram) require `withImages: true` and an authenticated session to download successfully
+
+---
+
+## Dependencies
+
+| Package | Version | Purpose |
+|---|---|---|
+| Microsoft.Playwright | 1.45.0+ | Browser automation |
+| HtmlAgilityPack | 1.11.61+ | HTML parsing |
+| Microsoft.Extensions.Logging.Abstractions | 8.0.1+ | Logging interface |
+| Tiktoken | 1.0.0+ | Token counting |
 
 
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
+
+## Contributing
+
+Contributions and feedback are welcome. Please open an issue or pull request on the [GitHub repository](https://github.com/Abdelwaheb-bhs/HarvestAI-).
+
+
+---
+
+> **Pre-release notice:** This is a `0.1.9-pre` package. The public API may change based on early adopter feedback. Review the changelog before upgrading.
