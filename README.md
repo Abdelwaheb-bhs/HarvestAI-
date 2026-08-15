@@ -1,8 +1,27 @@
-# HarvestAI — Web Scraping & Data Cleaning for LLMs
+ 
+ ![HarvestAI Logo](HarvestAI-logo-animated.svg)
 
-![HarvestAI Logo](logoHarvest.png)
 
-> Production-grade .NET library for scraping, crawling, and cleaning web content — purpose-built for Large Language Model pipelines.
+<p align="center">
+  <strong>Web Scraping &amp; Data Cleaning for LLMs</strong><br />
+  Production-grade .NET library for scraping, crawling, and cleaning web content — purpose-built for LLM pipelines.
+</p>
+
+<p align="center">
+  <a href="https://www.nuget.org/packages/HarvestAI"><img src="https://img.shields.io/nuget/v/HarvestAI?label=nuget" alt="NuGet Version"></a>
+  <a href="https://www.nuget.org/packages/HarvestAI"><img src="https://img.shields.io/nuget/dt/HarvestAI?label=downloads" alt="NuGet Downloads"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT"></a>
+  <a href="https://github.com/Abdelwaheb-bhs/HarvestAI-/stargazers"><img src="https://img.shields.io/github/stars/Abdelwaheb-bhs/HarvestAI-?style=flat" alt="GitHub Stars"></a>
+</p>
+
+<p align="center">
+  <a href="#why-harvestai">Why HarvestAI</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#installation">Installation</a> ·
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="#api-reference">API Reference</a> ·
+  <a href="#output-format">Output Format</a>
+</p>
 
 ---
 
@@ -19,7 +38,6 @@ Most scrapers return raw HTML. HarvestAI returns **LLM-ready chunks** — cleane
 - Runs a real Chromium browser so lazy-loaded posts, infinite-scroll feeds, and JS-gated content are fully rendered before extraction
 - Manages authenticated sessions end-to-end — you log in once in a visible browser, and HarvestAI carries your cookies into the scrape automatically
 - Bypasses CDN-gated images by intercepting authenticated image responses at the browser network level, then rewriting markdown links to local paths so they never expire
----
 
 ## Features
 
@@ -34,32 +52,29 @@ Most scrapers return raw HTML. HarvestAI returns **LLM-ready chunks** — cleane
 | **Image Downloading** | Downloads authenticated images and rewrites markdown links to local paths |
 | **Content Cleaning** | Normalise and sanitise content for AI consumption |
 
----
-
 ## Prerequisites
 
 - .NET 8.0 or later
 - Windows, Linux, or macOS
 
----
-
 ## Installation
 
 ```bash
-dotnet add package HarvestAI --prerelease
+dotnet add package HarvestAI --version 1.0.0
 ```
 
 Or via the NuGet Package Manager Console:
 
 ```powershell
-Install-Package HarvestAI -Prerelease
+Install-Package HarvestAI
 ```
 
 ### Playwright Browser Setup
 
 After installing the package, you need a Chromium binary. Pick whichever option suits your workflow:
 
-**Option 1 — Companion setup tool (recommended):**
+<details open>
+<summary><strong>Option 1 — Companion setup tool (recommended)</strong></summary>
 
 ```bash
 dotnet tool install --global HarvestAI.Setup
@@ -72,7 +87,10 @@ On Linux, add `--with-deps` to also install Playwright's system dependencies:
 harvestai-setup --with-deps
 ```
 
-**Option 2 — Install Playwright directly:**
+</details>
+
+<details>
+<summary><strong>Option 2 — Install Playwright directly</strong></summary>
 
 ```bash
 dotnet tool install --global Microsoft.Playwright.CLI
@@ -85,15 +103,16 @@ On Linux:
 playwright install --with-deps chromium
 ```
 
-### Using a Local Build
+</details>
 
-If you're testing against a local build instead of the NuGet feed:
+<details>
+<summary><strong>Using a local build instead of the NuGet feed?</strong></summary>
 
 ```bash
 dotnet add package HarvestAI --source C:\path\to\HarvestAI\bin\Release
 ```
 
----
+</details>
 
 ## Quick Start
 
@@ -165,7 +184,8 @@ finally
 }
 ```
 
-### Scrape a Login-Required Page
+<details>
+<summary><strong>Scrape a login-required page</strong></summary>
 
 The flow: open a visible browser → navigate to the target → let the user log in → `WaitForLoginAsync` returns once login is detected → navigate back to the target → scrape.
 
@@ -180,7 +200,7 @@ Directory.CreateDirectory(outputDirectory);
 var service = new WebScrapingService(maxConcurrency: 2, outputDirectory: outputDirectory);
 var browserSession = await service.LoadWebsite(needLogin: true);
 var url = "https://www.example.com/";
-    await browserSession.Page.GotoAsync(url);
+await browserSession.Page.GotoAsync(url);
 bool loggedIn = await service.WaitForLoginAsync(browserSession, timeoutSeconds: 1200);
 
 if (!loggedIn)
@@ -243,7 +263,7 @@ finally
 }
 ```
 
----
+</details>
 
 ## API Reference
 
@@ -258,11 +278,10 @@ new WebScrapingService(
 );
 ```
 
----
-
 ### Scraping Methods
 
-#### Scrape a Single Page (session-based)
+<details open>
+<summary><strong>Scrape a single page (session-based)</strong></summary>
 
 ```csharp
 var scrapingService = new WebScrapingService(maxConcurrency: 5, outputDirectory: "scraped_content");
@@ -299,7 +318,10 @@ var (htmlContent, chunks) = await scrapingService.SinglePageScrapingAsync(
 );
 ```
 
-#### Scrape a URL Directly (no session required)
+</details>
+
+<details>
+<summary><strong>Scrape a URL directly (no session required)</strong></summary>
 
 Spins up its own headless browser, scrapes, and disposes everything automatically.
 
@@ -307,7 +329,10 @@ Spins up its own headless browser, scrapes, and disposes everything automaticall
 await scrapingService.SinglePageScrapingAsync("https://example.com", metadata: true);
 ```
 
-#### Recursively Crawl an Entire Website
+</details>
+
+<details>
+<summary><strong>Recursively crawl an entire website</strong></summary>
 
 Starts from the current page in the session, discovers all internal links, and scrapes every page concurrently up to `maxConcurrency`. Returns one `FileContent` per page.
 
@@ -332,7 +357,10 @@ foreach (var page in pages)
 }
 ```
 
-#### Scrape a Specific Set of Pages
+</details>
+
+<details>
+<summary><strong>Scrape a specific set of pages</strong></summary>
 
 ```csharp
 var urls = new List<string>
@@ -345,7 +373,10 @@ var urls = new List<string>
 var results = await scrapingService.ScrapeSelectedPagesAsync(userSession, urls, metadata: true);
 ```
 
-#### Scrape by Element Attribute
+</details>
+
+<details>
+<summary><strong>Scrape by element attribute</strong></summary>
 
 Extracts only the elements whose attributes contain the supplied value — useful when you only want a specific section of a page (e.g. `"article-content"`, `"main-body"`).
 
@@ -357,7 +388,7 @@ var (html, chunks) = await scrapingService.ScrapeByValueAsync(
 );
 ```
 
----
+</details>
 
 ### HTML → Markdown Converter
 
@@ -405,8 +436,6 @@ FileContent result = converter.Convert(html, maxTokensPerChunk: 256, metadata: f
 FileContent result = converter.Convert(html, maxTokensPerChunk: 1024, metadata: false);
 ```
 
----
-
 ### Link Discovery
 
 ```csharp
@@ -421,8 +450,6 @@ foreach (var link in internalLinks)
 // Returns a snapshot of every URL the service has visited so far
 IEnumerable<string> visited = scrapingService.GetVisitedUrls();
 ```
-
----
 
 ## Output Format
 
@@ -458,16 +485,14 @@ outputDirectory/
     └── ...
 ```
 
----
-
 ## The `metadata` Parameter
 
 All scraping methods and the converter accept a `metadata` parameter (default `false`).
 
-- `metadata: false` — each chunk contains only the extracted text content.
-- `metadata: true` — each chunk's `Metadata` dictionary is populated with source details (URL, page title, etc.), useful for RAG pipelines where you need to cite the origin of each chunk.
-
----
+| Value | Behaviour |
+|---|---|
+| `metadata: false` | Each chunk contains only the extracted text content. |
+| `metadata: true` | Each chunk's `Metadata` dictionary is populated with source details (URL, page title, etc.), useful for RAG pipelines where you need to cite the origin of each chunk. |
 
 ## Performance Tips
 
@@ -475,8 +500,6 @@ All scraping methods and the converter accept a `metadata` parameter (default `f
 2. **Reuse sessions** — a single `BrowserSession` can scrape many pages from the same domain without re-launching a browser.
 3. **Prefer `ScrapeSelectedPagesAsync`** for batches — it respects the concurrency limit automatically.
 4. **Lower `maxTokensPerChunk`** if your model has a small context window; raise it to reduce chunk count for models with large windows.
-
----
 
 ## Error Handling
 
@@ -495,8 +518,6 @@ catch (Exception ex)
 }
 ```
 
----
-
 ## Dependencies
 
 | Package | Version | Purpose |
@@ -506,17 +527,12 @@ catch (Exception ex)
 | Microsoft.Extensions.Logging.Abstractions | 8.0.1+ | Logging interface |
 | Tiktoken | 1.0.0+ | Token counting for LLM models |
 
----
-
 ## Known Limitations
 
 - **Rate limiting** — aggressive concurrency may trigger blocks on some sites; lower `maxConcurrency` if you see 429s.
 - **Very large sites** — 1000+ pages will require significant memory; consider scraping in batches with `ScrapeSelectedPagesAsync`.
 - **Network timeouts** — default per-page timeout is 90 seconds; configure via Playwright browser options if needed.
 - **Login detection** — `WaitForLoginAsync` detects login by watching for navigation away from known auth URLs. For unusual SSO flows, press Enter in the console to signal login manually.
-
----
-
 
 ## Contributing
 
@@ -528,4 +544,4 @@ MIT — see `LICENSE` for details.
 
 ## Support
 
-For issues, questions, or feature requests, open a ticket on the [GitHub repository](https://github.com/yourusername/HarvestAI).
+For issues, questions, or feature requests, open a ticket on the [GitHub repository](https://github.com/Abdelwaheb-bhs/HarvestAI-).
