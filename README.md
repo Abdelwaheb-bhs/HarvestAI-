@@ -84,21 +84,6 @@ playwright install --with-deps chromium
 
 </details>
 
-<details>
-<summary><strong>Option 2 — Install Playwright directly</strong></summary>
-
-```bash
-dotnet tool install --global Microsoft.Playwright.CLI
-playwright install chromium
-```
-
-On Linux:
-
-```bash
-playwright install --with-deps chromium
-```
-
-</details>
 
 <details>
 <summary><strong>Using a local build instead of the NuGet feed?</strong></summary>
