@@ -83,15 +83,6 @@ playwright install --with-deps chromium
 
 </details>
 
-<details>
-<summary><strong>Using a local build instead of the NuGet feed?</strong></summary>
-
-```bash
-dotnet add package HarvestAI --source C:\path\to\HarvestAI\bin\Release
-```
-
-</details>
-
 ## Quick Start
 
 ### Scrape a Public Page
