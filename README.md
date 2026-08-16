@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="logoHarvest.svg" alt="HarvestAI" width="500" />
-</p>
+![HarvestAI Logo](HarvestAI-logo-animated.svg)
 
 <p align="center">
   <strong>Web Scraping &amp; Data Cleaning for LLMs</strong><br />
