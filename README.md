@@ -1,6 +1,6 @@
- 
- ![HarvestAI Logo](HarvestAI-logo-animated.svg)
-
+<p align="center">
+  <img src="logoHarvest.svg" alt="HarvestAI" width="500" />
+</p>
 
 <p align="center">
   <strong>Web Scraping &amp; Data Cleaning for LLMs</strong><br />
@@ -57,7 +57,61 @@ Most scrapers return raw HTML. HarvestAI returns **LLM-ready chunks** — cleane
 - .NET 8.0 or later
 - Windows, Linux, or macOS
 
-## Installation ```bash dotnet add package HarvestAI --version 1.0.0 ``` Or via the NuGet Package Manager Console: ```powershell Install-Package HarvestAI ``` ### Playwright Browser Setup After installing the package, install the Playwright Chromium browser: ```bash dotnet tool install --global Microsoft.Playwright.CLI playwright install chromium ``` On Linux: ```bash playwright install --with-deps chromium ``` ### Using a Local Build If you're testing against a local build instead of the NuGet feed: ```bash dotnet add package HarvestAI --source C:\path\to\HarvestAI\bin\Release ```
+## Installation
+
+```bash
+dotnet add package HarvestAI --version 1.0.0
+```
+
+Or via the NuGet Package Manager Console:
+
+```powershell
+Install-Package HarvestAI
+```
+
+### Playwright Browser Setup
+
+After installing the package, you need a Chromium binary. Pick whichever option suits your workflow:
+
+<details open>
+<summary><strong>Option 1 — Companion setup tool (recommended)</strong></summary>
+
+```bash
+dotnet tool install --global HarvestAI.Setup
+harvestai-setup
+```
+
+On Linux, add `--with-deps` to also install Playwright's system dependencies:
+
+```bash
+harvestai-setup --with-deps
+```
+
+</details>
+
+<details>
+<summary><strong>Option 2 — Install Playwright directly</strong></summary>
+
+```bash
+dotnet tool install --global Microsoft.Playwright.CLI
+playwright install chromium
+```
+
+On Linux:
+
+```bash
+playwright install --with-deps chromium
+```
+
+</details>
+
+<details>
+<summary><strong>Using a local build instead of the NuGet feed?</strong></summary>
+
+```bash
+dotnet add package HarvestAI --source C:\path\to\HarvestAI\bin\Release
+```
+
 </details>
 
 ## Quick Start
