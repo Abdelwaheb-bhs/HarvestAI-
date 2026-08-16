@@ -69,20 +69,17 @@ Install-Package HarvestAI
 
 ### Playwright Browser Setup
 
-After installing the package, you need a Chromium binary. Pick whichever option suits your workflow:
-
-<details open>
-<summary><strong>Option 1 — Companion setup tool (recommended)</strong></summary>
+After installing the package, you need a Chromium binary:
 
 ```bash
-dotnet tool install --global HarvestAI.Setup
-harvestai-setup
+dotnet tool install --global Microsoft.Playwright.CLI
+playwright install chromium
 ```
 
 On Linux, add `--with-deps` to also install Playwright's system dependencies:
 
 ```bash
-harvestai-setup --with-deps
+playwright install --with-deps chromium
 ```
 
 </details>
