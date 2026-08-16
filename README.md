@@ -57,30 +57,7 @@ Most scrapers return raw HTML. HarvestAI returns **LLM-ready chunks** — cleane
 - .NET 8.0 or later
 - Windows, Linux, or macOS
 
-## Installation
-
-```bash
-dotnet add package HarvestAI --version 1.0.0
-```
-
-Or via the NuGet Package Manager Console:
-
-```powershell
-Install-Package HarvestAI
-```
-
-### Playwright Browser Setup
-
-After installing the package, install the Playwright Chromium browser:
-
-```bash
-dotnet tool install --global Microsoft.Playwright.CLI
-playwright install chromium
-
-On Linux:
-
-playwright install --with-deps chromium
-
+## Installation ```bash dotnet add package HarvestAI --version 1.0.0 ``` Or via the NuGet Package Manager Console: ```powershell Install-Package HarvestAI ``` ### Playwright Browser Setup After installing the package, install the Playwright Chromium browser: ```bash dotnet tool install --global Microsoft.Playwright.CLI playwright install chromium ``` On Linux: ```bash playwright install --with-deps chromium ``` ### Using a Local Build If you're testing against a local build instead of the NuGet feed: ```bash dotnet add package HarvestAI --source C:\path\to\HarvestAI\bin\Release ```
 </details>
 
 ## Quick Start
